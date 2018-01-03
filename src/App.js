@@ -33,24 +33,16 @@ class App extends Component {
             <span> submit </span>
           </header>
         </section>
-        <section>
-          <table>
-            <tbody>
+        <section className='bg-brown pa2'>
             {this.state.threads.map((data) =>
-              <div>
-                <tr>
-                  <td>1</td>
-                  <td>V</td>
-                  <td>{data.title}</td>
-                </tr>
-                <tr>
-                  <td>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</td>
-                </tr>
+              <div className='fl pv2 w-100'>
+                <span className='pr1'>1</span>
+                <span className='pr1'>V</span>
+                <span>{data.title}</span>
+                <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</span>
               </div>
             )}
-            </tbody>
-          </table>
-          <button onClick={this.showMore}>Show more</button>
+          <a href='#' onClick={this.showMore}>More</a>
         </section>
       </div>
     );
@@ -84,23 +76,6 @@ class App extends Component {
       }
     );
   }
-  // componentDidMount() {
-    // this.topStoriesIds$ = Rx.Observable
-    //   .ajax(`${this.baseUrl}/topstories.json`)
-    //   .pluck('response')
-    //   .mergeMap(data => Rx.Observable.from(data))
-    //   .take(5)
-    //   .retry(3)
-    //   .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`),null, 1)
-    //   .subscribe(
-    //     data => {
-    //       console.log("datum:", data);
-    //     }
-    //   )
-    // }
-  // takeIds(numberShown) {
-  //   console.log('this.state.threadsShown: ', this.state.threadsShown);
-  // }
 
   showMore(){
     this.topStoriesIds$

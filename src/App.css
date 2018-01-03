@@ -26,3 +26,15 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+.bg-brown {
+  background-color: #f6f6ef;
+}
+.bg-orange {
+  background-color: #fff;
+}
+.color-primary {
+  color: #000;
+}
+.color-secondary {
+  color: #828282;
+}
