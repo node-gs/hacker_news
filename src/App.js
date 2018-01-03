@@ -8,7 +8,6 @@ class App extends Component {
 
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
   threadIds = [];
-  pureArray = [];
   idArray = [];
   constructor(props) {
     super(props);
@@ -65,30 +64,43 @@ class App extends Component {
     this.topStoriesIds$ = Rx.Observable
       .ajax(`${this.baseUrl}/topstories.json`)
       .retry(3)
-      .mergeMap(data => Rx.Observable.from(data.response));
+      .pluck('response')
+      .mergeMap(data => Rx.Observable.from(data));
 
     this.topStories$ = this.topStoriesIds$
-      .take(5)
-      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-       // => Observable of products
+      .take(30)
+      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
 
     this.topStories$.subscribe(
-      (data) => this.pureArray.push(data.response),
+      (data) => this.idArray.push(data.response),
       (error) => console.log("ERROR:", error),
       () => {
         this.setState({
-         threads: this.pureArray,
-         threadsShown: this.pureArray.length
+         threads: this.idArray,
+         threadsShown: this.idArray.length
         })
-        this.pureArray = [];
-        this.takeIds()
+        this.idArray = [];
+
       }
     );
   }
-
-  takeIds(numberShown) {
-    console.log('this.state.threadsShown: ', this.state.threadsShown);
-  }
+  // componentDidMount() {
+    // this.topStoriesIds$ = Rx.Observable
+    //   .ajax(`${this.baseUrl}/topstories.json`)
+    //   .pluck('response')
+    //   .mergeMap(data => Rx.Observable.from(data))
+    //   .take(5)
+    //   .retry(3)
+    //   .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`),null, 1)
+    //   .subscribe(
+    //     data => {
+    //       console.log("datum:", data);
+    //     }
+    //   )
+    // }
+  // takeIds(numberShown) {
+  //   console.log('this.state.threadsShown: ', this.state.threadsShown);
+  // }
 
   showMore(){
     this.topStoriesIds$
@@ -97,14 +109,14 @@ class App extends Component {
       .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
       .map(data => data.response) // => Observable of products
       .subscribe(
-        (data) => this.pureArray.push(data),
+        (data) => this.idArray.push(data),
         (error) => console.log("ERROR:", error),
         () => {
           this.setState({
-           threads: this.pureArray,
-           threadsShown: this.pureArray.length
+           threads: this.idArray,
+           threadsShown: this.idArray.length
           })
-          this.pureArray = [];
+          this.idArray = [];
           // this.takeIds()
         }
       );
