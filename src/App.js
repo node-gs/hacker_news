@@ -7,8 +7,9 @@ import Rx from 'rxjs/Rx';
 class App extends Component {
 
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
-  threadIds = [];
+
   idArray = [];
+
   constructor(props) {
     super(props);
 
@@ -34,10 +35,10 @@ class App extends Component {
           </header>
         </section>
         <section className='bg-brown pa2'>
-            {this.state.threads.map((data) =>
+            {this.state.threads.map((data, index) =>
               <div className='fl pv2 w-100'>
-                <span className='pr1'>1</span>
-                <span className='pr1'>V</span>
+                <span className='color-secondary pr1'>{index}.</span>
+                <span className='color-secondary pr1'>&#8593;</span>
                 <span>{data.title}</span>
                 <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</span>
               </div>
@@ -60,8 +61,8 @@ class App extends Component {
       .mergeMap(data => Rx.Observable.from(data));
 
     this.topStories$ = this.topStoriesIds$
-      .take(5)
-      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`)).do(data => console.log(data));
+      .take(2)
+      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`));
 
     this.topStories$.subscribe(
       (data) => this.idArray.push(data.response),
@@ -78,23 +79,22 @@ class App extends Component {
   }
 
   showMore(){
-    this.topStoriesIds$
-      .skip(this.state.threadsShown)
-      .take(30)
-      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-      .map(data => data.response) // => Observable of products
-      .subscribe(
-        (data) => this.idArray.push(data),
-        (error) => console.log("ERROR:", error),
-        () => {
-          this.setState({
-           threads: this.idArray,
-           threadsShown: this.idArray.length
-          })
-          this.idArray = [];
-          // this.takeIds()
-        }
-      );
+    // this.topStoriesIds$
+    //   .skip(this.state.threadsShown)
+    //   .take(3)
+    //   .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+    //   .map(data => data.response)
+    //   .subscribe(
+    //     (data) => this.idArray.push(data),
+    //     (error) => console.log("ERROR:", error),
+    //     () => {
+    //       this.setState({
+    //        threads: this.idArray,
+    //        threadsShown: this.idArray.length
+    //       })
+    //       this.idArray = [];
+    //     }
+    //   );
   }
 
 }
