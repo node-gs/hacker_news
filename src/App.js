@@ -9,7 +9,7 @@ class App extends Component {
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
   threadIds = [];
   pureArray = [];
-
+  idArray = [];
   constructor(props) {
     super(props);
 
@@ -35,7 +35,9 @@ class App extends Component {
           </header>
         </section>
         <section>
-          {this.state.threads.map((test) => <p>{test.id}</p>)}
+          <ul>
+          {this.state.threads.map((data) => <li>{data.title}</li>)}
+          </ul>
           <table>
             <tbody>
               <tr>
@@ -63,21 +65,22 @@ class App extends Component {
     this.topStoriesIds$ = Rx.Observable
       .ajax(`${this.baseUrl}/topstories.json`)
       .retry(3)
-      .mergeMap(data => Rx.Observable.from(data.response));  // => Observable of ids
+      .mergeMap(data => Rx.Observable.from(data.response));
 
     this.topStories$ = this.topStoriesIds$
       .take(5)
       .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-      .map(data => data.response); // => Observable of products
+       // => Observable of products
 
     this.topStories$.subscribe(
-      (data) => this.pureArray.push(data),
+      (data) => this.pureArray.push(data.response),
       (error) => console.log("ERROR:", error),
       () => {
         this.setState({
          threads: this.pureArray,
          threadsShown: this.pureArray.length
         })
+        this.pureArray = [];
         this.takeIds()
       }
     );
@@ -89,7 +92,8 @@ class App extends Component {
 
   showMore(){
     this.topStoriesIds$
-      .take(10)
+      .skip(this.state.threadsShown)
+      .take(30)
       .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
       .map(data => data.response) // => Observable of products
       .subscribe(
@@ -100,7 +104,8 @@ class App extends Component {
            threads: this.pureArray,
            threadsShown: this.pureArray.length
           })
-          this.takeIds()
+          this.pureArray = [];
+          // this.takeIds()
         }
       );
   }
