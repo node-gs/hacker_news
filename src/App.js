@@ -34,20 +34,20 @@ class App extends Component {
           </header>
         </section>
         <section>
-          <ul>
-          {this.state.threads.map((data) => <li>{data.title}</li>)}
-          </ul>
           <table>
             <tbody>
-              <tr>
-                <td>Number</td>
-                <td>chevron</td>
-                <td>Title</td>
-              </tr>
-              <tr>
-                <td>info</td>
-              </tr>
-
+            {this.state.threads.map((data) =>
+              <div>
+                <tr>
+                  <td>1</td>
+                  <td>V</td>
+                  <td>{data.title}</td>
+                </tr>
+                <tr>
+                  <td>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</td>
+                </tr>
+              </div>
+            )}
             </tbody>
           </table>
           <button onClick={this.showMore}>Show more</button>
@@ -68,8 +68,8 @@ class App extends Component {
       .mergeMap(data => Rx.Observable.from(data));
 
     this.topStories$ = this.topStoriesIds$
-      .take(30)
-      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .take(5)
+      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`)).do(data => console.log(data));
 
     this.topStories$.subscribe(
       (data) => this.idArray.push(data.response),
