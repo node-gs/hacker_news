@@ -9,7 +9,7 @@ class App extends Component {
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
 
   idArray = [];
-
+  batchNumber = 5;
   constructor(props) {
     super(props);
 
@@ -37,16 +37,21 @@ class App extends Component {
         <section className='bg-brown pa2'>
             {this.state.threads.map((data, index) =>
               <div className='fl pv2 w-100'>
-                <span className='color-secondary pr1'>{index + 1}.</span>
+                <span className='color-secondary pr1'>{this.state.threadsShown + index - this.batchNumber}.</span>
                 <span className='color-secondary pr1'>&#8593;</span>
                 <span>{data.title}</span>
-                <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</span>
+                <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {this.convertToTime(data.time)} | hide | {data.descendants} comments</span>
               </div>
             )}
           <a onClick={this.showMore}>More</a>
         </section>
       </div>
     );
+  }
+
+  convertToTime(time) {
+    let hoursAgo = (new Date() - new Date(time * 1000))/1000/60/60;
+    return hoursAgo < 1 ? Math.floor(hoursAgo * 60) + ' minutes ago' :  Math.floor(hoursAgo) + ' hours ago';
   }
 
   componentWillUnmount() {
@@ -64,10 +69,9 @@ class App extends Component {
     this.topStoriesIds$ = this.topStories$.switchMap(data => data);
 
     this.topStoriesIds3$ = this.topStoriesIds$
-      .take(5)
+      .take(this.batchNumber)
       .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
       .pluck('response')
-
 
     //subscribe
     this.topStoriesIds3$.subscribe(
@@ -79,7 +83,7 @@ class App extends Component {
       () => {
         this.setState({
          threads: this.idArray,
-         threadsShown: this.idArray.length
+         threadsShown: this.state.threadsShown + this.batchNumber
         })
         this.idArray = [];
       }
@@ -89,7 +93,7 @@ class App extends Component {
   showMore(){
     this.topStoriesIds$
       .skip(this.state.threadsShown)
-      .take(30)
+      .take(this.batchNumber)
       .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
       .pluck('response')
       .subscribe(
@@ -97,8 +101,8 @@ class App extends Component {
         (error) => console.log("ERROR:", error),
         () => {
           this.setState({
-           threads: this.idArray,
-           threadsShown: this.idArray.length
+            threads: this.idArray,
+            threadsShown: this.state.threadsShown + this.batchNumber
           })
           this.idArray = [];
         }
