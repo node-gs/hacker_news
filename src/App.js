@@ -52,19 +52,29 @@ class App extends Component {
   componentWillUnmount() {
     this.topStories.unsubscribe();
   }
+  obsFunc(id) {
+    return Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`);
+  }
 
   componentDidMount() {
-    this.topStoriesIds$ = Rx.Observable
+
+    //observable 1
+    this.topStories$ = Rx.Observable
       .ajax(`${this.baseUrl}/topstories.json`)
-      .retry(3)
+
+      .publishLast()
+      .refCount()
       .pluck('response')
-      .mergeMap(data => Rx.Observable.from(data));
 
-    this.topStories$ = this.topStoriesIds$
-      .take(2)
-      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`));
+    this.topStoriesIds$ = this.topStories$.switchMap(data => data);
 
-    this.topStories$.subscribe(
+    this.topStoriesIds$
+      .take(5)
+      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+
+
+    //subscribe
+    this.topStoriesIds$.subscribe(
       (data) => this.idArray.push(data.response),
       (error) => console.log("ERROR:", error),
       () => {
