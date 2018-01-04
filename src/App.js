@@ -7,9 +7,9 @@ import Rx from 'rxjs/Rx';
 class App extends Component {
 
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
-
   idArray = [];
   batchNumber = 5;
+
   constructor(props) {
     super(props);
 
