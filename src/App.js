@@ -37,13 +37,13 @@ class App extends Component {
         <section className='bg-brown pa2'>
             {this.state.threads.map((data, index) =>
               <div className='fl pv2 w-100'>
-                <span className='color-secondary pr1'>{index}.</span>
+                <span className='color-secondary pr1'>{index + 1}.</span>
                 <span className='color-secondary pr1'>&#8593;</span>
                 <span>{data.title}</span>
                 <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {(new Date() - new Date(data.time * 1000))/1000/60/60} hours ago | hide | {data.descendants} comments</span>
               </div>
             )}
-          <a href='#' onClick={this.showMore}>More</a>
+          <a onClick={this.showMore}>More</a>
         </section>
       </div>
     );
@@ -52,30 +52,29 @@ class App extends Component {
   componentWillUnmount() {
     this.topStories.unsubscribe();
   }
-  obsFunc(id) {
-    return Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`);
-  }
 
   componentDidMount() {
 
-    //observable 1
     this.topStories$ = Rx.Observable
       .ajax(`${this.baseUrl}/topstories.json`)
-
       .publishLast()
       .refCount()
       .pluck('response')
 
     this.topStoriesIds$ = this.topStories$.switchMap(data => data);
 
-    this.topStoriesIds$
+    this.topStoriesIds3$ = this.topStoriesIds$
       .take(5)
       .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .pluck('response')
 
 
     //subscribe
-    this.topStoriesIds$.subscribe(
-      (data) => this.idArray.push(data.response),
+    this.topStoriesIds3$.subscribe(
+      (data) => {
+        this.idArray.push(data)
+        console.log('Data: ', data);
+      },
       (error) => console.log("ERROR:", error),
       () => {
         this.setState({
@@ -83,28 +82,27 @@ class App extends Component {
          threadsShown: this.idArray.length
         })
         this.idArray = [];
-
       }
     );
   }
 
   showMore(){
-    // this.topStoriesIds$
-    //   .skip(this.state.threadsShown)
-    //   .take(3)
-    //   .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-    //   .map(data => data.response)
-    //   .subscribe(
-    //     (data) => this.idArray.push(data),
-    //     (error) => console.log("ERROR:", error),
-    //     () => {
-    //       this.setState({
-    //        threads: this.idArray,
-    //        threadsShown: this.idArray.length
-    //       })
-    //       this.idArray = [];
-    //     }
-    //   );
+    this.topStoriesIds$
+      .skip(this.state.threadsShown)
+      .take(30)
+      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .pluck('response')
+      .subscribe(
+        (data) => this.idArray.push(data),
+        (error) => console.log("ERROR:", error),
+        () => {
+          this.setState({
+           threads: this.idArray,
+           threadsShown: this.idArray.length
+          })
+          this.idArray = [];
+        }
+      );
   }
 
 }
