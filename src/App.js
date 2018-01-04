@@ -29,6 +29,11 @@ class App extends Component {
             </header>
           </section>
           <Route path="/new" component={New}/>
+          <Route path="/comments" component={Comments}/>
+          <Route path="/show" component={Show}/>
+          <Route path="/ask" component={Ask}/>
+          <Route path="/jobs" component={Jobs}/>
+          <Route path="/submit" component={Submit}/>
         </div>
       </Router>
 
@@ -37,6 +42,12 @@ class App extends Component {
   }
 
 }
+
+class Comments extends Component {}
+class Show extends Component {}
+class Ask extends Component {}
+class Jobs extends Component {}
+class Submit extends Component {}
 
 class New extends Component {
 
@@ -62,7 +73,13 @@ class New extends Component {
             <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
             <span className='color-secondary pr1'>&#8593;</span>
             <span>{data.title}</span>
-            <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {this.convertToTime(data.time)} | hide | {data.descendants} comments</span>
+            <span className='color-secondary pl4 fl w-100 f6'>
+              {data.score} points
+              by {data.by}
+              {this.convertToTime(data.time)}
+              | hide |
+              {data.descendants} comments
+            </span>
           </div>
         )}
         <a onClick={ (e) => this.getStories() }>More</a>
