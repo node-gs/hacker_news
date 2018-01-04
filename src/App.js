@@ -3,8 +3,42 @@ import logo from './logo.svg';
 import './App.css';
 import '../node_modules/tachyons/css/tachyons.css'
 import Rx from 'rxjs/Rx';
+import {
+  BrowserRouter as Router,
+  Route,
+  Link
+} from 'react-router-dom'
+
 
 class App extends Component {
+
+  render() {
+    return (
+      <div className='mh3'>
+      <Router>
+        <div>
+          <section>
+            <header className='bg-orange pa1'>
+              <strong className='pr2'>Hacker News</strong>|
+              <Link to={`/new`}> new </Link>
+              <Link to={`/comments`}> comments </Link>
+              <Link to={`/show`}> show </Link>
+              <Link to={`/ask`}> ask </Link>
+              <Link to={`/jobs`}> jobs </Link>
+              <Link to={`/submit`}> submit </Link>
+            </header>
+          </section>
+          <Route path="/new" component={New}/>
+        </div>
+      </Router>
+
+      </div>
+    );
+  }
+
+}
+
+class New extends Component {
 
   baseUrl = 'https://hacker-news.firebaseio.com/v0';
   idArray = [];
@@ -22,31 +56,18 @@ class App extends Component {
 
   render() {
     return (
-      <div className='mh3'>
-        <section>
-          <header className='bg-orange pa1'>
-            <strong className='pr2'>Hacker News</strong>|
-            <span> new </span> |
-            <span> comments </span> |
-            <span> show </span> |
-            <span> ask </span> |
-            <span> jobs </span> |
-            <span> submit </span>
-          </header>
-        </section>
-        <section className='bg-brown pa2'>
-            {this.state.threads.map((data, index) =>
-              <div className='fl pv2 w-100'>
-                <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
-                <span className='color-secondary pr1'>&#8593;</span>
-                <span>{data.title}</span>
-                <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {this.convertToTime(data.time)} | hide | {data.descendants} comments</span>
-              </div>
-            )}
-          <a onClick={ (e) => this.getStories() }>More</a>
-        </section>
-      </div>
-    );
+      <section className='bg-brown pa2'>
+        {this.state.threads.map((data, index) =>
+          <div className='fl pv2 w-100'>
+            <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
+            <span className='color-secondary pr1'>&#8593;</span>
+            <span>{data.title}</span>
+            <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {this.convertToTime(data.time)} | hide | {data.descendants} comments</span>
+          </div>
+        )}
+        <a onClick={ (e) => this.getStories() }>More</a>
+      </section>
+    )
   }
 
   // no index in returned JSON, this sets index
@@ -66,7 +87,7 @@ class App extends Component {
   }
 
   componentWillUnmount() {
-    this.topStories.unsubscribe();
+    this.getStories$.unsubscribe();
   }
 
   getStoryIds() {
@@ -79,7 +100,7 @@ class App extends Component {
   }
 
   getStories(test) {
-    this.topStoryIds$
+    this.getStories$ = this.topStoryIds$
       .skip(this.state.threadsShown)
       .take(this.batchNumber)
       .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
@@ -96,7 +117,7 @@ class App extends Component {
         }
       );
   }
-
 }
+
 
 export default App;
