@@ -15,7 +15,7 @@ class App extends Component {
 
     this.state = {
       threads: [],
-      threadsShown: 0
+      threadsShown: 0,
     };
     this.getStories = this.getStories.bind(this);
   }
@@ -43,7 +43,7 @@ class App extends Component {
                 <span className='color-secondary pl4 fl w-100 f6'>{data.score} points by {data.by} {this.convertToTime(data.time)} | hide | {data.descendants} comments</span>
               </div>
             )}
-          <a onClick={this.getStories}>More</a>
+          <a onClick={ (e) => this.getStories() }>More</a>
         </section>
       </div>
     );
@@ -77,7 +77,7 @@ class App extends Component {
       .pluck('response')
       .switchMap(data => data);
   }
-  getStories() {
+  getStories(test) {
     this.topStoryIds$
       .skip(this.state.threadsShown)
       .take(this.batchNumber)
