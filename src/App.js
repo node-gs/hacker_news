@@ -77,6 +77,7 @@ class App extends Component {
       .pluck('response')
       .switchMap(data => data);
   }
+
   getStories(test) {
     this.topStoryIds$
       .skip(this.state.threadsShown)
