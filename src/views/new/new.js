@@ -65,7 +65,7 @@ class New extends Component {
 
   getStoryIds() {
     this.topStoryIds$ = Rx.Observable
-      .ajax(`${this.baseUrl}/topstories.json`)
+      .ajax(`${this.baseUrl}/newstories.json`)
       .publishLast()
       .refCount()
       .pluck('response')
