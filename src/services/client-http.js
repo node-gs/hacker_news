@@ -6,6 +6,22 @@ class Http {
     this.baseUrl = 'https://hacker-news.firebaseio.com/v0';
   }
 
+  getStory(id) {
+    let abc = Rx.Observable
+      .ajax(`${this.baseUrl}/item/${id}.json`)
+      .pluck('response')
+      .pluck('kids')
+      .mergeMap(data => data)
+      .take(30)
+      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .toArray()
+
+    return this.getBatchOfComments$ = Rx.Observable
+      .forkJoin(abc)
+      .mergeMap((data, index) => data[index])
+      .pluck('response');
+  }
+
   getStoryIds(prefix) {
     // get all story Ids
     this.topStoryIds$ = Rx.Observable
@@ -17,11 +33,11 @@ class Http {
     return this;
   }
 
-  getStories(...options) {
+  getStories() {
     // use story Ids to create batch of ajax requests, eg 0-30, 31-60
     this.requestBatch$ = this.topStoryIds$
-      .skip(options[1])
-      .take(options[0])
+      .skip(0)
+      .take(30)
       .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
       .toArray();
 

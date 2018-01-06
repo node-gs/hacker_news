@@ -6,6 +6,14 @@ import CONSTANTS from '../../constants'
 
 import Time from '../../services/time'
 
+import {
+  Route,
+  Link
+} from 'react-router-dom'
+
+
+import Comment from '../comments/comments'
+
 class Top extends Component {
 
   idArray = [];
@@ -17,7 +25,7 @@ class Top extends Component {
       threads: [],
       threadsShown: 0,
     };
-    console.log('SOMETHING IS HAPPENING: 1')
+
     // init services
     this.newRequest = new Http();
     this.timeService = new Time();
@@ -26,16 +34,21 @@ class Top extends Component {
   render() {
     return (
       <section className='bg-brown pa2'>
+        <Route path={`${this.props.match.url}/:topicId`} component={Comment} kids={'testing-props'}/>
         {this.state.threads.map((data, index) =>
           <div className='fl pv2 w-100'>
-            <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
+            <span className='color-secondary pr1'>{index + 1}.</span>
             <span>{data.title}</span>
             <ul className='color-secondary list ma0 f6'>
               <li className='dib pl1'>{data.score} points </li>
               <li className='dib pl1'>by {data.by} </li>
               <li className='dib pl1'>{this.timeService.convertToTime(data.time)} </li>
               <li className='dib pl1'><a>hide</a></li>
-              <li className='dib pl1'><a>{data.descendants} comments</a></li>
+              <li className='dib pl1'>
+                <Link to={`${this.props.match.url}/${data.id}`} component={Comment} kids={data.kids}>
+                  {data.descendants} comments
+                </Link>
+              </li>
             </ul>
           </div>
         )}
@@ -50,40 +63,37 @@ class Top extends Component {
   }
 
   componentDidMount() {
-    console.log('SOMETHING IS HAPPENING: 2')
-    console.log('PARAMS ID: ', this.props.match.params.id)
     this.getStories();
   }
   
   componentWillUnmount() {
-    this.getResults$.unsubscribe();
+    this.request$.unsubscribe();
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log('something happening!', nextProps);
     if (this.props.match.params.id === nextProps.match.params.id) 
       return;
-    console.log('this.props: ', this.props);
-    console.log('this.state: ', this.state);
-    // this.setState(nextProps.match.params.id);
-    this.setState({ threadsShown: 0});
+    
     this.props.match.params.id = nextProps.match.params.id;
     this.getStories();
   }
 
   getStories() {
-    this.newRequest
+    this.idArray = [];
+    this.request$ = this.newRequest
       .getStoryIds(this.props.match.params.id)
-      .getStories(this.batchNumber, this.state.threadsShown)
-      .subscribe(
-        data => this.idArray.push(data),
-        error => console.log('error: ', error),
-        () => {
-          this.setState({
-            threads: this.idArray,
-            threadsShown: this.batchNumber + this.state.threadsShown
-          })
-          this.idArray = [];
-        });
+      .getStories();
+
+    this.request$.subscribe(
+      data => this.idArray.push(data),
+      error => console.log('error: ', error),
+      () => {
+        this.setState({
+          threads: this.idArray,
+          threadsShown: this.batchNumber + this.state.threadsShown
+        })
+      });
   }
 
 }
