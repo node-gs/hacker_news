@@ -7,11 +7,7 @@ import {
 } from 'react-router-dom'
 
 //views
-import New from './views/new/new';
 import Top from './views/top/top';
-import Show from './views/show/show';
-import Ask from './views/ask/ask';
-import Jobs from './views/jobs/jobs';
 
 
 class Routes extends Component {
@@ -32,12 +28,8 @@ class Routes extends Component {
 
               </header>
             </section>
-            <Route path="/new" component={New} />
-            <Route path="/top" component={Top} />
-            <Route path="/show" component={Show} />
-            <Route path="/ask" component={Ask} />
-            <Route path="/jobs" component={Jobs} />
 
+            <Route path="/:id" component={Top} />
           </div>
         </Router>
 

@@ -2,15 +2,14 @@ import Rx from 'rxjs/Rx'
 
 class Http {
 
-  constructor(...options) {
+  constructor() {
     this.baseUrl = 'https://hacker-news.firebaseio.com/v0';
-    this.prefix = 'top'
   }
 
-  getStoryIds() {
+  getStoryIds(prefix) {
     // get all story Ids
     this.topStoryIds$ = Rx.Observable
-      .ajax(`${this.baseUrl}/${this.prefix}stories.json`)
+      .ajax(`${this.baseUrl}/${prefix}stories.json`)
       .publishLast()
       .refCount()
       .pluck('response')
