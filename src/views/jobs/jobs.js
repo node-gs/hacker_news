@@ -56,7 +56,7 @@ class Jobs extends Component {
   componentDidMount() {
     this.getStoryIds();
     this.getStories();
-    new Http();
+
   }
 
   componentWillUnmount() {

@@ -1,36 +1,38 @@
 import Rx from 'rxjs/Rx'
 
 class Http {
-  constructor() {
-    console.log('hello , world');
+
+  constructor(...options) {
+    this.baseUrl = 'https://hacker-news.firebaseio.com/v0';
+    this.prefix = 'top'
   }
 
   getStoryIds() {
+    // get all story Ids
     this.topStoryIds$ = Rx.Observable
-      .ajax(`${this.baseUrl}/topstories.json`)
+      .ajax(`${this.baseUrl}/${this.prefix}stories.json`)
       .publishLast()
       .refCount()
       .pluck('response')
-      .switchMap(data => data);
+      .mergeMap(data => data);
+    return this;
   }
 
-  getStories(test) {
-    this.getStories$ = this.topStoryIds$
-      .skip(this.state.threadsShown)
-      .take(this.batchNumber)
-      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-      .pluck('response')
-      .subscribe(
-      (data) => this.idArray.push(data),
-      (error) => console.log('error: ', error),
-      () => {
-        this.setState({
-          threads: this.idArray,
-          threadsShown: this.state.threadsShown + this.batchNumber
-        })
-        this.idArray = [];
-      }
-      );
+  getStories(...options) {
+    // use story Ids to create batch of ajax requests, eg 0-30, 31-60
+    this.requestBatch$ = this.topStoryIds$
+      .skip(options[1])
+      .take(options[0])
+      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .toArray();
+
+    // fetch batch
+    this.getBatchOfStories$ = Rx.Observable
+      .forkJoin(this.requestBatch$)
+      .mergeMap((data, index) => data[index])
+      .pluck('response');
+
+    return this.getBatchOfStories$
   }
 }
 

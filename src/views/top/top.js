@@ -4,11 +4,12 @@ import Rx from 'rxjs/Rx';
 
 import Http from '../../services/client-http'
 
+import CONSTANTS from '../../constants'
+
 class Top extends Component {
 
-  baseUrl = 'https://hacker-news.firebaseio.com/v0';
   idArray = [];
-  batchNumber = 5;
+  batchNumber = CONSTANTS.batchNumber;
 
   constructor(props) {
     super(props);
@@ -17,7 +18,8 @@ class Top extends Component {
       threads: [],
       threadsShown: 0,
     };
-    this.getStories = this.getStories.bind(this);
+    // this.getStories = this.getStories.bind(this);
+    this.newRequest = new Http();
   }
 
   render() {
@@ -27,13 +29,13 @@ class Top extends Component {
           <div className='fl pv2 w-100'>
             <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
             <span>{data.title}</span>
-            <span className='color-secondary pl4 fl w-100 f6'>
-              {data.score} points
-              by {data.by}
-              {this.convertToTime(data.time)}
-              | hide |
-              {data.descendants} comments
-            </span>
+            <ul className='color-secondary list ma0 f6'>
+              <li className='dib pl1'>{data.score} points </li>
+              <li className='dib pl1'>by {data.by} </li>
+              <li className='dib pl1'>{this.convertToTime(data.time)} </li>
+              <li className='dib pl1'>hide</li>
+              <li className='dib pl1'>{data.descendants} comments </li>
+            </ul>
           </div>
         )}
         <a onClick={(e) => this.getStories()}>More</a>
@@ -53,53 +55,29 @@ class Top extends Component {
   }
 
   componentDidMount() {
-    this.getStoryIds();
     this.getStories();
-    new Http();
   }
 
   componentWillUnmount() {
-    this.getStories$.unsubscribe();
-  }
-
-  getStoryIds() {
-    // get all story Ids
-    this.topStoryIds$ = Rx.Observable
-      .ajax(`${this.baseUrl}/topstories.json`)
-      .publishLast()
-      .refCount()
-      .pluck('response')
-      .mergeMap(data => data);
+    this.getResults$.unsubscribe();
   }
 
   getStories() {
-    // use story Ids to create batch of ajax requests
-    this.requestBatch$ = this.topStoryIds$
-      .skip(this.state.threadsShown)
-      .take(this.batchNumber)
-      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-      .toArray();
-
-    // fetch batch
-    this.getBatchOfStories$ = Rx.Observable
-      .forkJoin(this.requestBatch$)
-      .mergeMap((data, index) => data[index])
-      .pluck('response');
-    
-    // populate results  
-    this.getResults$ = this.getBatchOfStories$
+    this.newRequest
+      .getStoryIds()
+      .getStories(this.batchNumber, this.state.threadsShown)
       .subscribe(
-        (data) => this.idArray.push(data),
-        (error) => console.log('error: ', error),
+        data => this.idArray.push(data),
+        error => console.log('error: ', error),
         () => {
           this.setState({
             threads: this.idArray,
-            threadsShown: this.state.threadsShown + this.batchNumber
+            threadsShown: this.batchNumber + this.state.threadsShown
           })
           this.idArray = [];
-        }
-      );
-    }
+        });
+  }
+
 }
 
 export default Top;
