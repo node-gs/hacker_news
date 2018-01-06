@@ -26,7 +26,6 @@ class Top extends Component {
         {this.state.threads.map((data, index) =>
           <div className='fl pv2 w-100'>
             <span className='color-secondary pr1'>{this.postIndex(index)}.</span>
-            <span className='color-secondary pr1'>&#8593;</span>
             <span>{data.title}</span>
             <span className='color-secondary pl4 fl w-100 f6'>
               {data.score} points
@@ -64,32 +63,43 @@ class Top extends Component {
   }
 
   getStoryIds() {
+    // get all story Ids
     this.topStoryIds$ = Rx.Observable
       .ajax(`${this.baseUrl}/topstories.json`)
       .publishLast()
       .refCount()
       .pluck('response')
-      .switchMap(data => data);
+      .mergeMap(data => data);
   }
 
-  getStories(test) {
-    this.getStories$ = this.topStoryIds$
+  getStories() {
+    // use story Ids to create batch of ajax requests
+    this.requestBatch$ = this.topStoryIds$
       .skip(this.state.threadsShown)
       .take(this.batchNumber)
-      .concatMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
-      .pluck('response')
+      .mergeMap(id => Rx.Observable.ajax(`${this.baseUrl}/item/${id}.json`))
+      .toArray();
+
+    // fetch batch
+    this.getBatchOfStories$ = Rx.Observable
+      .forkJoin(this.requestBatch$)
+      .mergeMap((data, index) => data[index])
+      .pluck('response');
+    
+    // populate results  
+    this.getResults$ = this.getBatchOfStories$
       .subscribe(
-      (data) => this.idArray.push(data),
-      (error) => console.log('error: ', error),
-      () => {
-        this.setState({
-          threads: this.idArray,
-          threadsShown: this.state.threadsShown + this.batchNumber
-        })
-        this.idArray = [];
-      }
+        (data) => this.idArray.push(data),
+        (error) => console.log('error: ', error),
+        () => {
+          this.setState({
+            threads: this.idArray,
+            threadsShown: this.state.threadsShown + this.batchNumber
+          })
+          this.idArray = [];
+        }
       );
-  }
+    }
 }
 
 export default Top;

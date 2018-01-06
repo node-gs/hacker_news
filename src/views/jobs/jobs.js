@@ -92,4 +92,4 @@ class Jobs extends Component {
   }
 }
 
-export default Job;
+export default Jobs;
