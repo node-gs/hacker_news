@@ -5,9 +5,10 @@ class Http {
   constructor() {
     this.baseUrl = 'https://hacker-news.firebaseio.com/v0';
   }
-
+  // This first api call is redundant because I already have the kids property from the stories call, but I haven't 'lifted state'
+  // or implemented a Redux type store to get state
   getStory(id) {
-    let abc = Rx.Observable
+    let getStory$ = Rx.Observable
       .ajax(`${this.baseUrl}/item/${id}.json`)
       .pluck('response')
       .pluck('kids')
@@ -17,7 +18,7 @@ class Http {
       .toArray()
 
     return this.getBatchOfComments$ = Rx.Observable
-      .forkJoin(abc)
+      .forkJoin(getStory$)
       .mergeMap((data, index) => data[index])
       .pluck('response');
   }

@@ -21,6 +21,7 @@ class Comment extends Component {
       threads: []
     };
     this.requestService = new Http();
+    this.timeService = new Time();
   }
 
   render() {
@@ -28,9 +29,7 @@ class Comment extends Component {
       <section>
         {this.state.threads.map((data, index) =>
           <div>
-            <h3>Title of topic</h3>
-            <p>url</p>
-            <p>points by user</p>
+            <p>{data.by} {this.timeService.convertToTime(data.time)}</p>
             <p className='f6'>{data.text}</p>
           </div>
         )}
@@ -39,23 +38,21 @@ class Comment extends Component {
   }
 
   componentWillMount() {
-    // console.log('cwm', this.props);
+    this.idArray = [];
+    this.requestService
+      .getStory(this.props.match.params.id)
+      .subscribe(
+      data => this.idArray.push(data),
+      error => console.log('error: ', error),
+      () => {
+        this.setState({
+          threads: this.idArray
+        })
+        console.log('this.idArray: ', this.idArray);
+      });
   }
   componentWillReceiveProps(nextProps) {
-    this.idArray = [];
-    // console.log('cwrp', this.props.match.params.topicId);
-    // TODO: use nextprops 
-    this.requestService
-      .getStory(this.props.match.params.topicId)
-        .subscribe(
-        data => this.idArray.push(data),
-        error => console.log('error: ', error),
-        () => {
-          this.setState({
-            threads: this.idArray
-          })
-          console.log('this.idArray: ', this.idArray);
-        });
+
   }
   
 }

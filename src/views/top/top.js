@@ -45,7 +45,7 @@ class Top extends Component {
               <li className='dib pl1'>{this.timeService.convertToTime(data.time)} </li>
               <li className='dib pl1'><a>hide</a></li>
               <li className='dib pl1'>
-                <Link to={`${this.props.match.url}/${data.id}`} component={Comment} kids={data.kids}>
+                <Link to={`/comments/${data.id}`} component={Comment}>
                   {data.descendants} comments
                 </Link>
               </li>
@@ -67,22 +67,23 @@ class Top extends Component {
   }
   
   componentWillUnmount() {
-    this.request$.unsubscribe();
+    // not sure quite how to unsubscribe from this yet
+    // this.newRequest.unsubscribe();
+    // console.log('unmounting');
   }
 
+  // surely this isn't the best way to do this
   componentWillReceiveProps(nextProps) {
-    console.log('something happening!', nextProps);
-    if (this.props.match.params.id === nextProps.match.params.id) 
+    if (this.props.match.params.type === nextProps.match.params.type) 
       return;
-    
-    this.props.match.params.id = nextProps.match.params.id;
+    this.props.match.params.type = nextProps.match.params.type;
     this.getStories();
   }
 
   getStories() {
     this.idArray = [];
     this.request$ = this.newRequest
-      .getStoryIds(this.props.match.params.id)
+      .getStoryIds(this.props.match.params.type)
       .getStories();
 
     this.request$.subscribe(
@@ -91,6 +92,7 @@ class Top extends Component {
       () => {
         this.setState({
           threads: this.idArray,
+          // not being used
           threadsShown: this.batchNumber + this.state.threadsShown
         })
       });
